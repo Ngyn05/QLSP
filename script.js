@@ -1,11 +1,78 @@
+// 1. ABSTRACTION - Base Product Class (Abstract)
+class Product {
+    constructor(id, name, price, quantity, description, image = null) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.quantity = quantity;
+        this.description = description;
+        this.image = image;
+    }
+
+    // 2. ENCAPSULATION - Private method (using #)
+    calculateTotal() {
+        return this.price * this.quantity;
+    }
+
+    getInfo() {
+        return {
+            id: this.id,
+            name: this.name,
+            price: this.price,
+            quantity: this.quantity,
+            description: this.description,
+            image: this.image,
+            total: this.calculateTotal()
+        };
+    }
+
+    validate() {
+        return this.name && this.price >= 0 && this.quantity >= 0;
+    }
+}
+
+// 3. INHERITANCE - Physical Product extends Product
+class PhysicalProduct extends Product {
+    constructor(id, name, price, quantity, description, image) {
+        super(id, name, price, quantity, description, image);
+        this.type = 'physical';
+    }
+
+    // 4. POLYMORPHISM - Override method
+    getInfo() {
+        const baseInfo = super.getInfo();
+        return {
+            ...baseInfo,
+            type: this.type,
+            hasImage: !!this.image
+        };
+    }
+}
+
 // Product Manager Class
 class ProductManager {
+    #apiUrl; // Private field (Encapsulation)
+    #products;
+
     constructor() {
-        this.products = this.loadProducts();
-        this.nextId = this.getNextId();
+        this.#products = [];
+        this.nextId = 1;
         this.editingId = null;
-        this.apiUrl = 'http://localhost:5000/api';
+        this.#apiUrl = 'http://localhost:5000/api';
         this.init();
+    }
+
+    // Getter/Setter (Encapsulation)
+    get products() {
+        return this.#products;
+    }
+
+    set products(value) {
+        this.#products = value;
+    }
+
+    get apiUrl() {
+        return this.#apiUrl;
     }
 
     init() {
@@ -79,7 +146,11 @@ class ProductManager {
         try {
             const response = await fetch(`${this.apiUrl}/products`);
             if (response.ok) {
-                this.products = await response.json();
+                const data = await response.json();
+                // Create Product objects (Polymorphism)
+                this.products = data.map(p => 
+                    new PhysicalProduct(p.id, p.name, p.price, p.quantity, p.description, p.image)
+                );
                 this.renderProducts();
                 this.updateStats();
             }
@@ -181,10 +252,11 @@ class ProductManager {
     }
 
     searchProducts(searchTerm) {
-        const filteredProducts = this.products.filter(product =>
-            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            product.description.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        const filteredProducts = this.products.filter(product => {
+            const info = product.getInfo ? product.getInfo() : product;
+            return info.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                   (info.description && info.description.toLowerCase().includes(searchTerm.toLowerCase()));
+        });
         this.renderProducts(filteredProducts);
     }
 
@@ -201,25 +273,27 @@ class ProductManager {
         }
 
         tbody.innerHTML = productsToRender.map(product => {
-            const imageHtml = product.image 
-                ? `<img src="${this.apiUrl}/uploads/${product.image}" class="product-image" alt="${product.name}">`
+            // Polymorphism - use getInfo() method
+            const info = product.getInfo ? product.getInfo() : product;
+            const imageHtml = info.image 
+                ? `<img src="${this.apiUrl}/uploads/${info.image}" class="product-image" alt="${info.name}">`
                 : `<div class="product-image no-image">📦</div>`;
             
             return `
                 <tr>
-                    <td>${product.id}</td>
+                    <td>${info.id}</td>
                     <td>${imageHtml}</td>
-                    <td><strong>${product.name}</strong></td>
-                    <td class="price">${this.formatCurrency(product.price)}</td>
-                    <td>${product.quantity}</td>
-                    <td>${product.description || '-'}</td>
-                    <td class="price">${this.formatCurrency(product.price * product.quantity)}</td>
+                    <td><strong>${info.name}</strong></td>
+                    <td class="price">${this.formatCurrency(info.price)}</td>
+                    <td>${info.quantity}</td>
+                    <td>${info.description || '-'}</td>
+                    <td class="price">${this.formatCurrency(info.total || info.price * info.quantity)}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="btn-edit" onclick="productManager.editProduct(${product.id})">
+                            <button class="btn-edit" onclick="productManager.editProduct(${info.id})">
                                 ✏️ Sửa
                             </button>
-                            <button class="btn-delete" onclick="productManager.deleteProduct(${product.id})">
+                            <button class="btn-delete" onclick="productManager.deleteProduct(${info.id})">
                                 🗑️ Xóa
                             </button>
                         </div>
@@ -231,9 +305,10 @@ class ProductManager {
 
     updateStats() {
         const totalProducts = this.products.length;
-        const totalValue = this.products.reduce((sum, product) => 
-            sum + (product.price * product.quantity), 0
-        );
+        // Polymorphism - use calculateTotal() method
+        const totalValue = this.products.reduce((sum, product) => {
+            return sum + (product.calculateTotal ? product.calculateTotal() : product.price * product.quantity);
+        }, 0);
 
         document.getElementById('total-products').textContent = totalProducts;
         document.getElementById('total-value').textContent = this.formatCurrency(totalValue);
