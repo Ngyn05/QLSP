@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Sản Phẩm</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛍️ Quản Lý Sản Phẩm</h1>
+        </header>
+
+        <div class="main-content">
+            <!-- Form thêm/sửa sản phẩm -->
+            <div class="form-section">
+                <h2 id="form-title">Thêm Sản Phẩm Mới</h2>
+                <form id="product-form">
+                    <input type="hidden" id="product-id">
+                    
+                    <div class="form-group">
+                        <label for="product-name">Tên sản phẩm:</label>
+                        <input type="text" id="product-name" required placeholder="Nhập tên sản phẩm">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-price">Giá (VNĐ):</label>
+                        <input type="number" id="product-price" required placeholder="Nhập giá sản phẩm" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-quantity">Số lượng:</label>
+                        <input type="number" id="product-quantity" required placeholder="Nhập số lượng" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-description">Mô tả:</label>
+                        <textarea id="product-description" rows="3" placeholder="Nhập mô tả sản phẩm"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-image">Hình ảnh:</label>
+                        <input type="file" id="product-image" accept="image/*">
+                        <div id="image-preview" class="image-preview"></div>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="submit" class="btn btn-primary" id="submit-btn">
+                            <span>➕</span> Thêm Sản Phẩm
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancel-btn" style="display: none;">
+                            <span>❌</span> Hủy
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tìm kiếm và danh sách sản phẩm -->
+            <div class="list-section">
+                <div class="search-section">
+                    <h2>Danh Sách Sản Phẩm</h2>
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="🔍 Tìm kiếm sản phẩm...">
+                    </div>
+                    <div class="stats">
+                        <span>Tổng số sản phẩm: <strong id="total-products">0</strong></span>
+                        <span>Tổng giá trị: <strong id="total-value">0 VNĐ</strong></span>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="product-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Hình Ảnh</th>
+                                <th>Tên Sản Phẩm</th>
+                                <th>Giá</th>
+                                <th>Số Lượng</th>
+                                <th>Mô Tả</th>
+                                <th>Thành Tiền</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="product-list">
+                            <tr class="empty-state">
+                                <td colspan="8">Chưa có sản phẩm nào. Hãy thêm sản phẩm mới!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
